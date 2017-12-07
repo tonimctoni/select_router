@@ -102,7 +102,7 @@ def display_dhcp_response_and_commands(screen, dhcp_response, commands):
         commands: (list<str>): List of commands to be executed.
 
     Returns:
-        bool: True if user picked `accept`, False if user picked `cancel`.
+        bool: True if user picked `accept`, False if user picked `cancel`. Default is False (if escape is pressed).
     """
     ret=False
     while True:
@@ -110,22 +110,22 @@ def display_dhcp_response_and_commands(screen, dhcp_response, commands):
         screen.border(0)
 
         screen.addstr(2, 2, "DHCP Response: ", curses.A_BOLD)
-        # screen.addstr(4+0, 4, "MAC Source Address:\t"+dhcp_response[0])
-        screen.addstr(4+0, 4, "Source IP Address:\t\t"+dhcp_response[1])
-        screen.addstr(4+1, 4, "Destination IP Address:\t"+dhcp_response[2])
-        screen.addstr(4+2, 4, "BOOTP Your Ip:\t\t"+dhcp_response[3])
-        screen.addstr(4+3, 4, "Router IP Address:\t\t"+dhcp_response[4])
-        screen.addstr(4+4, 4, "Name Server Address:\t"+dhcp_response[5])
-        screen.addstr(4+5, 4, "Broadcast Address:\t\t"+dhcp_response[6])
-        screen.addstr(4+6, 4, "Subnet Mask:\t\t"+dhcp_response[7])
-        screen.addstr(4+7, 4, "Domain:\t\t\t"+dhcp_response[8])
+        screen.addstr(4+0, 4, "MAC Source Address:\t\t"+dhcp_response[0])
+        screen.addstr(4+1, 4, "Source IP Address:\t\t"+dhcp_response[1])
+        screen.addstr(4+2, 4, "Destination IP Address:\t"+dhcp_response[2])
+        screen.addstr(4+3, 4, "BOOTP Your Ip:\t\t"+dhcp_response[3])
+        screen.addstr(4+4, 4, "Router IP Address:\t\t"+dhcp_response[4])
+        screen.addstr(4+5, 4, "Name Server Address:\t"+dhcp_response[5])
+        screen.addstr(4+6, 4, "Broadcast Address:\t\t"+dhcp_response[6])
+        screen.addstr(4+7, 4, "Subnet Mask:\t\t"+dhcp_response[7])
+        screen.addstr(4+8, 4, "Domain:\t\t\t"+dhcp_response[8])
 
-        screen.addstr(13, 2, "Commands: ", curses.A_BOLD)
+        screen.addstr(14, 2, "Commands: ", curses.A_BOLD)
         for i, command in enumerate(commands):
-            screen.addstr(15+i, 4, command)
+            screen.addstr(16+i, 4, command)
 
-        screen.addstr(17+len(commands), 6, "CANCEL", curses.A_REVERSE if ret==False else curses.A_NORMAL)
-        screen.addstr(17+len(commands), 15, "ACCEPT", curses.A_REVERSE if ret==True else curses.A_NORMAL)
+        screen.addstr(18+len(commands), 6, "CANCEL", curses.A_REVERSE if ret==False else curses.A_NORMAL)
+        screen.addstr(18+len(commands), 15, "ACCEPT", curses.A_REVERSE if ret==True else curses.A_NORMAL)
 
         screen.refresh()
 
@@ -171,18 +171,18 @@ def configure_ip_according_to_dhcp_response(screen, dhcp_response):
     commands=[
         "ip r flush all",
         "ip a flush dev eth0",
-        # "ip n flush all",
-        # "ip n flush nud all",
-        # "ip n replace %s lladdr %s dev eth0"%(router_ip, router_mac),
+        "ip n flush all",
+        "ip n flush nud all",
+        "ip n replace %s lladdr %s dev eth0"%(dhcp_response[1], dhcp_response[0]),
         "ip a add %s/%i brd %s dev eth0"%(dhcp_response[2], get_mask_bits(dhcp_response[7]), dhcp_response[6]),
         "ip r add default via %s"%dhcp_response[4],
         "echo \"nameserver %s\" > /etc/resolv.conf"%dhcp_response[5],
-        # "iptables -F",
-        # "iptables -t nat -F",
-        # "iptables -P OUTPUT ACCEPT",
-        # "iptables -P INPUT DROP",
-        # "iptables -A INPUT --in-interface lo -j ACCEPT",
-        # "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
+        "iptables -F",
+        "iptables -t nat -F",
+        "iptables -P OUTPUT ACCEPT",
+        "iptables -P INPUT DROP",
+        "iptables -A INPUT --in-interface lo -j ACCEPT",
+        "iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT",
     ]
 
     ok=display_dhcp_response_and_commands(screen, dhcp_response, commands)
